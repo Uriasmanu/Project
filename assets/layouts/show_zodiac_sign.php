@@ -1,53 +1,96 @@
 <?php
-    // Incluindo o header.php
-    include('header.php');
-?>
+$xml = simplexml_load_file('signos.xml');
 
-<div class="container mt-5">
-    <h2>Seu Signo</h2>
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $data_nascimento = $_POST['data_nascimento'];
 
-    <?php
-    // Recebendo a data de nascimento do formulário
-    if ($_SERVER["REQUEST_METHOD"] == "POST") {
-        $data_nascimento = $_POST['data_nascimento'];
+    $dia = (int) date("d", strtotime($data_nascimento));
+    $mes = (int) date("m", strtotime($data_nascimento));
 
-        // Exibindo a data recebida
-        echo "<p>Data de nascimento: " . $data_nascimento . "</p>";
+    $signoEncontrado = null;
 
-        // Processamento para descobrir o signo (com base na data)
-        $dia = (int) date("d", strtotime($data_nascimento));
-        $mes = (int) date("m", strtotime($data_nascimento));
 
-        // Array de signos e suas datas
-        $signos = [
-            ["nome" => "Áries", "inicio" => "21/03", "fim" => "20/04"],
-            ["nome" => "Touro", "inicio" => "21/04", "fim" => "20/05"],
-            ["nome" => "Gêmeos", "inicio" => "21/05", "fim" => "20/06"],
-            ["nome" => "Câncer", "inicio" => "21/06", "fim" => "22/07"],
-            ["nome" => "Leão", "inicio" => "23/07", "fim" => "22/08"],
-            ["nome" => "Virgem", "inicio" => "23/08", "fim" => "22/09"],
-            ["nome" => "Libra", "inicio" => "23/09", "fim" => "22/10"],
-            ["nome" => "Escorpião", "inicio" => "23/10", "fim" => "21/11"],
-            ["nome" => "Sagitário", "inicio" => "22/11", "fim" => "21/12"],
-            ["nome" => "Capricórnio", "inicio" => "22/12", "fim" => "20/01"],
-            ["nome" => "Aquário", "inicio" => "21/01", "fim" => "18/02"],
-            ["nome" => "Peixes", "inicio" => "19/02", "fim" => "20/03"],
-        ];
+    foreach ($xml->signo as $signo) {
+        list($diaInicio, $mesInicio) = explode("/", $signo->dataInicio);
+        list($diaFim, $mesFim) = explode("/", $signo->dataFim);
 
-        // Loop para determinar o signo com base na data de nascimento
-        foreach ($signos as $signo) {
-            list($diaInicio, $mesInicio) = explode("/", $signo["inicio"]);
-            list($diaFim, $mesFim) = explode("/", $signo["fim"]);
-
-            if (($mes == $mesInicio && $dia >= $diaInicio) || ($mes == $mesFim && $dia <= $diaFim)) {
-                echo "<p class='alert alert-info'>Seu signo é <strong>{$signo["nome"]}</strong>!</p>";
-                break;
-            }
+        if (($mes == $mesInicio && $dia >= $diaInicio) || ($mes == $mesFim && $dia <= $diaFim)) {
+            $signoEncontrado = $signo; 
+            break;
         }
     }
-    ?>
+}
+?>
 
-    <a href="index.php" class="btn btn-secondary">Voltar</a>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signos</title>
+    <style>
+        body {
+            background-image: url('https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8YyVDMyVBOXUlMjBlc3RyZWxhZG98ZW58MHx8MHx8fDA%3D'); 
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white; 
+        }
+
+        .signo {
+            font-size: 36px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .btn-voltar {
+            padding: 10px 20px;
+            font-size: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            margin-top: 20px;
+            position: relative;
+            left: 40%;
+            top: 90%;
+        }
+
+        .btn-voltar:hover {
+            background-color: rgba(255, 255, 255, 0.5);
+            color: black;
+        }
+
+        .simbolo {
+            margin-right: 10px;
+            font-size: 36px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container mt-5">
+    <?php if (isset($signoEncontrado)): ?>
+        <div class='signo'>
+            <strong><?php echo $signoEncontrado->signoNome; ?></strong><br>
+            <?php echo $signoEncontrado->dataInicio; ?> a <?php echo $signoEncontrado->dataFim; ?><br>
+            <?php echo $signoEncontrado->descricao; ?>
+        </div>
+    <?php elseif ($_SERVER["REQUEST_METHOD"] == "POST"): ?>
+        <div class='signo'>
+            <strong>Signo não encontrado!</strong><br>
+            Verifique a data de nascimento informada.
+        </div>
+    <?php endif; ?>
+
+    <a href="index.php" class="btn-voltar">Voltar ao Início</a>
 </div>
 
 </body>
